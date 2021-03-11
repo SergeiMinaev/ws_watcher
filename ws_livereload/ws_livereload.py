@@ -45,20 +45,25 @@ def watcher():
         i.add_watch(path['dir'])
     for event in i.event_gen(yield_nones=False):
         (_, type_names, path, filename) = event
-        #print('changed:', event)
-        BOX['is_reload_wanted'] = True
-        BOX['fname'] = filename
+        if 'IN_CLOSE_WRITE' in type_names:
+            print('changed:', filename)
+            BOX['is_reload_wanted'] = True
+            BOX['fname'] = filename
 
 watcher_thread = Thread(target = watcher).start()
 
 async def serve(websocket, path):
     while True:
-        await asyncio.sleep(1)
+        await asyncio.sleep(0.3)
         if BOX['is_reload_wanted'] == True:
-            print('Reload wanted')
+            #print('Reload wanted', BOX['fname'])
             msg = {'reload_wanted': BOX['fname']}
-            await websocket.send(str(msg).replace("'", '"'))
+            try:
+                await websocket.send(str(msg).replace("'", '"'))
+            except websockets.exceptions.ConnectionClosedOK as e:
+                pass
             BOX['is_reload_wanted'] = False
+            BOX['fname'] = None
 
 server = websockets.serve(serve, "localhost", 8100)
 
