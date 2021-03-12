@@ -25,10 +25,10 @@ PATHS = [
 ]"""
 sys.path.insert(0, os.getcwd())
 try:
-    import ws_livereload_conf as conf
+    import ws_watcher_conf as conf
 except:
-    print('Config ws_livereload_conf.py not found.')
-    f = open('ws_livereload_conf.py', 'w')
+    print('Config ws_watcher_conf.py not found.')
+    f = open('ws_watcher_conf.py', 'w')
     f.write(EXAMPLE_CONF)
     f.close()
     print('Default config was created in current dir. Edit it and re-start me.')
@@ -58,10 +58,8 @@ async def serve(websocket, path):
         if BOX['is_reload_wanted'] == True:
             #print('Reload wanted', BOX['fname'])
             msg = {'reload_wanted': BOX['fname']}
-            try:
-                await websocket.send(str(msg).replace("'", '"'))
-            except websockets.exceptions.ConnectionClosedOK as e:
-                pass
+            await websocket.ping()
+            await websocket.send(str(msg).replace("'", '"'))
             BOX['is_reload_wanted'] = False
             BOX['fname'] = None
 
