@@ -4,19 +4,26 @@ import sys
 import pprint
 import asyncio
 import websockets
+import subprocess
 import inotify.adapters
 from threading import Thread
 
 
 EXAMPLE_CONF = """import os
 
-PATHS = [
+SETUP = [
     {
         'dir': 'frontend/src/',
         'files': [
             'app.js',
             'utils.js'
-        ]
+        ],
+        'onchange': {
+            'is_send_ws_msg': True,
+            'cmds': [
+                'echo "Hello!"',
+            ]
+        },
     },
     {
         'dir': 'static/css/',
@@ -36,31 +43,35 @@ except:
 
 
 
-BOX = {'is_reload_wanted': False}
+BOX = {'is_send_ws_msg': False}
 def watcher():
     print('starting...')
     i = inotify.adapters.Inotify()
-    for path in conf.PATHS:
+    for path in conf.SETUP:
         print('watching', path['dir'])
         i.add_watch(path['dir'])
     for event in i.event_gen(yield_nones=False):
         (_, type_names, path, filename) = event
         if 'IN_CLOSE_WRITE' in type_names:
-            print('changed:', filename)
-            BOX['is_reload_wanted'] = True
-            BOX['fname'] = filename
+            print('changed:', path, filename)
+            for q in filter(lambda q: q['dir'] == path, conf.SETUP):
+                BOX['is_send_ws_msg'] = q['onchange']['is_send_ws_msg']
+                BOX['fname'] = filename
+                for cmd in q['onchange']['cmds']:
+                    print(f'executing {cmd}...')
+                    subprocess.Popen([cmd], shell=True)
 
 watcher_thread = Thread(target = watcher).start()
 
 async def serve(websocket, path):
     while True:
         await asyncio.sleep(0.3)
-        if BOX['is_reload_wanted'] == True:
+        if BOX['is_send_ws_msg'] == True:
             #print('Reload wanted', BOX['fname'])
             msg = {'reload_wanted': BOX['fname']}
             await websocket.ping()
             await websocket.send(str(msg).replace("'", '"'))
-            BOX['is_reload_wanted'] = False
+            BOX['is_send_ws_msg'] = False
             BOX['fname'] = None
 
 server = websockets.serve(serve, "localhost", 8100)
