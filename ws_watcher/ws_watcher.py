@@ -32,10 +32,10 @@ SETUP = [
 ]"""
 sys.path.insert(0, os.getcwd())
 try:
-    import ws_watcher_conf as conf
+    import conf_ws_watcher as conf
 except:
-    print('Config ws_watcher_conf.py not found.')
-    f = open('ws_watcher_conf.py', 'w')
+    print('Config conf_ws_watcher.py not found.')
+    f = open('conf_ws_watcher.py', 'w')
     f.write(EXAMPLE_CONF)
     f.close()
     print('Default config was created in current dir. Edit it and re-start me.')
