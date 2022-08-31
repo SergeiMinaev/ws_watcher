@@ -3,6 +3,7 @@ import os
 import sys
 import pprint
 import asyncio
+import signal
 import websockets
 import subprocess
 import inotify.adapters
@@ -61,7 +62,7 @@ def watcher():
                     print(f'executing {cmd}...')
                     subprocess.Popen([cmd], shell=True)
 
-watcher_thread = Thread(target = watcher).start()
+watcher_thread = Thread(target=watcher, daemon=True).start()
 
 async def handler(websocket):
     while True:
@@ -75,7 +76,11 @@ async def handler(websocket):
             BOX['fname'] = None
 
 async def main():
+    loop = asyncio.get_running_loop()
+    stop = loop.create_future()
+    loop.add_signal_handler(signal.SIGTERM, stop.set_result, None)
+    loop.add_signal_handler(signal.SIGINT, stop.set_result, None)
     async with websockets.serve(handler, "localhost", 8100):
-        await asyncio.Future()
+        await stop
 
 asyncio.run(main())
