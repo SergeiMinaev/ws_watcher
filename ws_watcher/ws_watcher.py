@@ -63,7 +63,7 @@ def watcher():
 
 watcher_thread = Thread(target = watcher).start()
 
-async def serve(websocket, path):
+async def handler(websocket):
     while True:
         await asyncio.sleep(0.3)
         if BOX['is_send_ws_msg'] == True:
@@ -74,7 +74,8 @@ async def serve(websocket, path):
             BOX['is_send_ws_msg'] = False
             BOX['fname'] = None
 
-server = websockets.serve(serve, "localhost", 8100)
+async def main():
+    async with websockets.serve(handler, "localhost", 8100):
+        await asyncio.Future()
 
-asyncio.get_event_loop().run_until_complete(server)
-asyncio.get_event_loop().run_forever()
+asyncio.run(main())
