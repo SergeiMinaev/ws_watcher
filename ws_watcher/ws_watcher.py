@@ -56,9 +56,9 @@ def watcher():
         if 'IN_CLOSE_WRITE' in type_names:
             print('changed:', path, filename)
             for q in filter(lambda q: q['dir'] == path, conf.SETUP):
-                BOX['is_send_ws_msg'] = q['onchange']['is_send_ws_msg']
+                BOX['is_send_ws_msg'] = q.get('onchange', {}).get('is_send_ws_msg', True)
                 BOX['fname'] = filename
-                for cmd in q['onchange']['cmds']:
+                for cmd in q.get('onchange', {}).get('cmds', [])
                     print(f'executing {cmd}...')
                     subprocess.Popen([cmd], shell=True)
 
