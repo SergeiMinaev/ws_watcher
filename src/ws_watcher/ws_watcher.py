@@ -11,14 +11,17 @@ from threading import Thread
 
 
 try:
+	sys.path.insert(0, os.getcwd())
 	import ws_watcher_conf as conf
 	PATHS = conf.PATHS
-except:
-	BASE_DIR = os.path.dirname(os.path.realpath(__file__))
+except ModuleNotFoundError:
+	BASE_DIR = os.getcwd()
 	print(f'Config file ws_watcher_conf.py not found. Watching current dir: {BASE_DIR} .')
 	PATHS = [
 		{'dir': BASE_DIR }
 	]
+except Exception as e:
+	print('Failed to load config:', e)
 
 
 BOX = {'is_send_ws_msg': False}
