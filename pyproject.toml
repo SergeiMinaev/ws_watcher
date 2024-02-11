@@ -1,6 +1,6 @@
 [project]
 name = "ws_watcher"
-version = "0.6.3"
+version = "0.6.4"
 description = "Minimalistic file watcher with ability to send WebSocket msgs and execute commands."
 authors = [
     { name = "Sergei Minaev", email = "i@zenux.ru" },

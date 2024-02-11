@@ -51,12 +51,20 @@ watcher_thread = Thread(target=watcher, daemon=True).start()
 async def handler(websocket):
 	while True:
 		await asyncio.sleep(0.3)
+		try:
+			await websocket.ping()
+		except websockets.exceptions.ConnectionClosedOK:
+			break
+
 		if BOX['is_send_ws_msg'] == True:
 			msg = {'reload_wanted': BOX['fname']}
 			try:
 				await websocket.send(str(msg).replace("'", '"'))
+			except websockets.exceptions.ConnectionClosedOK:
+				print('The client closed the connection.')
+				break
 			except Exception as e:
-				print('Unable to send - the client is offline.')
+				print('Failed to send:', e)
 			BOX['is_send_ws_msg'] = False
 			BOX['fname'] = None
 
