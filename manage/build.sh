@@ -1,1 +1,1 @@
-python -m build
+pdm build
